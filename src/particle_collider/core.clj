@@ -21,15 +21,13 @@
     (.setColor graphics Color/BLACK)
     (.setFont graphics font)
     (.drawString graphics caption 10 25)
-    (ImageIO/write image "png" (io/as-file (io/resource filename))))))
+    (ImageIO/write image "png" (io/as-file (io/resource filename)))))
 
 
 (str->img "epic" "meme.png")
 
 ;; load an image from a resource file
 (def ant (img/load-image-resource "meme.png"))
-ant
-
 
 ;; show the image, after applying an "invert" filter
 (img/show (img/filter-image ant (filt/invert)))
