@@ -5,26 +5,31 @@
            [java.io File])
   (:require
    [mikera.image.filters :as filt]
-   [mikera.image.core :as img])
+   [mikera.image.core :as img]
+   [clojure.java.io :as io])
   (:gen-class))
 
-(defn str->img [string filename]
-  (let [file (File. (str "./" filename ".png"))
-        width 250
+(io/as-file (io/resource "meme.png"))
+
+(defn str->img [caption filename]
+  (let [width 250
         height 100
-        image (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
+        image (img/load-image-resource filename)
         graphics (.createGraphics image)
         font-size 30
         font (Font. "TimesRoman" Font/BOLD font-size)]
     (.setColor graphics Color/BLACK)
     (.setFont graphics font)
-    (.drawString graphics string 10 25)
-    (ImageIO/write image "png" file)))
+    (.drawString graphics caption 10 25)
+    (ImageIO/write image "png" (io/as-file (io/resource filename))))))
 
-(str->img "epic" "resources/meme")
+
+(str->img "epic" "meme.png")
 
 ;; load an image from a resource file
-(def ant (img/load-image-resource "meme.jpg"))
+(def ant (img/load-image-resource "meme.png"))
+ant
+
 
 ;; show the image, after applying an "invert" filter
 (img/show (img/filter-image ant (filt/invert)))
