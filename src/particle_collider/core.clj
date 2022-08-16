@@ -6,10 +6,19 @@
   (:require
    [mikera.image.filters :as filt]
    [mikera.image.core :as img]
-   [clojure.java.io :as io])
+   [clojure.java.io :as io]
+   [clojure.core.async :as async]
+   [discljord.connections :as conn]
+   [discljord.messaging :as msg])
   (:gen-class))
 
-(io/as-file (io/resource "meme.png"))
+(def token "e0af87480e28ee376b2b677790f24a9b393dfc788ba75696a2443ee6a99e559c")
+(def intents #{:guilds :guild-messages})
+
+(let [event-ch     (async/chan 100)
+      connection-ch (conn/connection-bot!)
+      message-ch (msg/start-connection! token)])
+
 
 (defn str->img [caption filename]
   (let [width 250
