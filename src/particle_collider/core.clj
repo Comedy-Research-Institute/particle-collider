@@ -9,7 +9,8 @@
    [clojure.java.io :as io]
    [clojure.core.async :as async]
    [discljord.connections :as conn]
-   [discljord.messaging :as msg])
+   [discljord.messaging :as msg]
+   [clojure.string :as str])
   (:gen-class))
 
 
@@ -50,13 +51,14 @@
     ;; TODO: test caption placement for x and y values
     (add-text-to-img caption image 50 0)
     (add-text-to-img caption image 50 200)
-    (ImageIO/write image "png" (io/as-file (io/resource filename)))))
-
-
+    (def filename "meme.png")
+    (ImageIO/write image "png"
+                   (io/as-file
+                    (str "resources/" (first (str/split filename #"\.")) ".modified.png")))))
 
 (do
   (caption-image "top caption?" "meme.png")
-  (def ant (img/load-image-resource "meme.png"))
+  (def ant (img/load-image-resource "meme.modified.png"))
   (img/show ant))
 
 
