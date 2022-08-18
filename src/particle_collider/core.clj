@@ -33,13 +33,12 @@
 ;; Captioning function with XY coords
 (defn add-text-to-img [caption image x y]
   (let [graphics (.createGraphics image)
-       font-size 30
-       font (Font. "TimesRoman" Font/BOLD font-size)]
-  (.setColor graphics Color/BLACK)
-  (.setFont graphics font)
-  (.drawString graphics caption x y)
-  image
-    ))
+        font-size 30
+        font (Font. "TimesRoman" Font/BOLD font-size)]
+    (.setColor graphics Color/BLACK)
+    (.setFont graphics font)
+    (.drawString graphics caption x y)
+    image))
 
 
 ;; Top and bottom captioning
@@ -55,15 +54,14 @@
 
 
 
-(caption-image "AFNDUGZIGBIUDA:OJONUIFBILSMDNBDHGJHFCGVBYKUNmm,,,,," "meme.png")
+(do
+  (caption-image "top caption?" "meme.png")
+  (def ant (img/load-image-resource "meme.png"))
+  (img/show ant))
 
 
 ;; load an image from a resource file
-(def ant (img/load-image-resource "meme.png"))
-
 ;; show the image, after applying an "invert" filter
-(img/show (img/filter-image ant (filt/invert)))
-
 (defn -main
   "I don't do a whole lot ... yet." 
   [& args]
