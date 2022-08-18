@@ -1,5 +1,5 @@
 (ns particle-collider.core
-  (:import [java.awt Graphics2D Color Font]
+  (:import [java.awt Graphics2D Color Font BasicStroke]
            [java.awt.image BufferedImage]
            [javax.imageio ImageIO]
            [java.io File])
@@ -34,23 +34,39 @@
 ;; Captioning function with XY coords
 (defn add-text-to-img [caption image x y]
   (let [graphics (.createGraphics image)
-        font-size 30
-        font (Font. "TimesRoman" Font/BOLD font-size)]
+        font-size 100
+        font (Font. "TimesRoman" Font/BOLD font-size)
+        metrics (.getFontMetrics graphics font)]
+
+    (def shape (.getOutline
+                (. font
+                   createGlyphVector
+                   (. graphics getFontRenderContext)
+                   "swage")))
+    
+    (.translate graphics (int (- x (/ (.stringWidth metrics caption) 2))) (int y))
+    (.setColor graphics Color/WHITE)
+    (.setStroke graphics (new BasicStroke 2.0))
+    (.draw graphics shape)
     (.setColor graphics Color/BLACK)
-    (.setFont graphics font)
-    (.drawString graphics caption x y)
+    (.fill graphics shape)
+    
+    (comment (.setColor graphics Color/BLACK)
+             (.setFont graphics font)
+             (.drawString graphics caption (- x (/ (.stringWidth metrics caption) 2)) y))
     image))
 
 
 ;; Top and bottom captioning
 (defn caption-image [caption filename]
-
-  (let [image (img/load-image-resource filename)]
+  (let [image (img/load-image-resource filename)
+        width (.getWidth image)
+        height (.getHeight image)]
+    
     ;; get image width, x=width/2
     ;; get image height, y1 = 0 y2 = height
     ;; TODO: test caption placement for x and y values
-    (add-text-to-img caption image 50 0)
-    (add-text-to-img caption image 50 200)
+    (add-text-to-img caption image (/ width 2) (/ height 2))
     (def filename "meme.png")
     (ImageIO/write image "png"
                    (io/as-file
