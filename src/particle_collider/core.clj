@@ -18,9 +18,11 @@
 (def intents #{:guilds :guild-messages})
 
 
-;; (let [event-ch     (async/chan 100)
-;;       connection-ch (conn/connection-bot!)
-;;       message-ch (msg/start-connection! token)])
+
+(let [event-ch     (async/chan 100)
+       connection-ch (conn/connect-bot! token event-ch :intents intents)
+       message-ch (msg/start-connection! token)])
+
 
 
 (defn batch-caption []
