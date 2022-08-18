@@ -16,12 +16,34 @@
 
 (def token "e0af87480e28ee376b2b677790f24a9b393dfc788ba75696a2443ee6a99e559c")
 (def intents #{:guilds :guild-messages})
+(def channel-id "965124415216033832")
 
-
-
+(defn bot []
+  
 (let [event-ch     (async/chan 100)
-       connection-ch (conn/connect-bot! token event-ch :intents intents)
-       message-ch (msg/start-connection! token)])
+      connection-ch (conn/connect-bot! token event-ch :intents intents)
+      message-ch (msg/start-connection! token)]
+  (try
+    (loop []
+      (let [[event-type event-data] (async/<!! event-ch)]
+        (when (and (= :message-create event-type event-data)
+                   (= (:channel-id event-data) channel-id)
+                   (not (:bot (:author event-data))))
+          (let [message-content (:content event-data)]
+            (if (= "!exit" (str/trim (str/lower-case message-content)))
+              (do
+                (msg/create-message! message-ch channel-id :content "Goodbye!")
+                (conn/disconnect-bot! connection-ch))
+              (msg/create-message! message-ch channel-id :content message-content))))
+        (when-not (= :disconnect event-type)
+          (recur))))
+    (finally
+      (msg/stop-connection! message-ch)
+      (async/close! event-ch))))
+
+)
+(+ 3 3)
+
 
 
 
