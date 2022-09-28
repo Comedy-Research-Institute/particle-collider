@@ -19,6 +19,13 @@
    Output")
 
 
+(defn load-bufferedImage-from-file [filename]
+  )
+
+
+(defn load-bufferedImage-from-file [url]
+  (ImageIO/read (io/as-url url)))
+
 
 ;; Captioning function with XY coords
 ;; Todo: add docstring instead of overhead comment
@@ -46,17 +53,15 @@
     image))
 
 
-;; Top and bottom captioning
-(defn caption-image [caption filename]
-  (let [image (img/load-image filename)
-        height (.getHeight image)
-        width (.getWidth image)]
-    ;; get image height, y1 = 0 y2 = height
-    ;; TODO: test caption placement for x and y values
-    (add-text-to-img caption image (/ width 2) (/ height 2) 100)
-    (def filename "meme.png")))
-
-
+;; ;; Top and bottom captioning
+;; (defn caption-image [caption filename]
+;;   (let [image (img/load-image filename)
+;;         height (.getHeight image)
+;;         width (.getWidth image)]
+;;     ;; get image height, y1 = 0 y2 = height
+;;     ;; TODO: test caption placement for x and y values
+;;     (add-text-to-img caption image (/ width 2) (/ height 2) 100)
+;;     (def filename "meme.png")))
 
 
 
