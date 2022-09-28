@@ -7,14 +7,32 @@
 
 
 ;; Contains all functions necessary to interact with the Discord API
-
-(defonce token "OTY1MTIyMjU0MDk2NzExNzYw.GzWsW4.nI5S7gZGjiG9bMUw9HG1zCRgm-k10DeKjrTWeM")
-(def intents #{:guilds :guild-messages})
-(def channel-id "965124415216033832")
-
+;; TODO: figure out if url or proxy-url more useful
+;;       see if we can get image as object from url
+;;       attach created image to message
 
 
-(defn initialize-bot [token, intents, channel-id]
+
+
+
+(defn is-image-message? [event-type event-data channel-id]
+  "Description:
+       Boolean expression which returns true if the message containts an
+        attachment, and that attachment is an image.
+   Arguments:
+       event-type and event-data are the outputs of the event-ch stream
+       event-type - Keyword: the message's event type
+       event-data - HashMap: the event's attributes and their values
+   Returns:
+       boolean"
+  (and (= :message-create event-type)
+       (= (:channel-id event-data) channel-id)
+       (not (:bot (:author event-data)))
+       (> (count (:attachments event-data)) 0)))
+
+
+
+(defn initialize-bot [token, intents, channel-id, image-function]
   "Description
        Initializes the bot
    Arguments
@@ -27,30 +45,31 @@
   (let [event-ch      (async/chan 100)
         connection-ch (conn/connect-bot! token event-ch :intents intents)
         message-ch    (msg/start-connection! token)] ;; start-connection returns a channel to be used for messsaging
-    
-    (try
-      (loop []
 
+    (try
+
+      (loop []
         (let [[event-type event-data] (async/<!! event-ch)]
-          (print event-data)
-          (when (and (= :message-create event-type)
-                     (= (:channel-id event-data) channel-id)
-                     (not (:bot (:author event-data)))
-                     (> (count (:attachments event-data)) 0))
+          (when (is-image-message? event-type event-data channel-id); <-- check attachment docs 
             (let [message-content (:content event-data)]
+
+              ;; move outside is-image-message?
               (if (= "!exit" (str/trim (str/lower-case message-content)))
                 (do
-
                   (msg/create-message! message-ch channel-id :content "Goodbye!")
                   (conn/disconnect-bot! connection-ch))
 
-                (msg/create-message! message-ch channel-id :content message-content))))
+                (do
+                  (let [image (:url second (:attachments event-data))
+                        processed-image (image-function image)]
+                     ;; create message with attachments \/ 
+                    (println (second (:attachments event-data)))
+                    (msg/create-message! message-ch channel-id :content message-content :attachments processed-image))))))
           (when (= :channel-pins-update event-type)
             (conn/disconnect-bot! connection-ch))
           (when-not (= :disconnect event-type)
             (recur))))
+
       (finally
         (msg/stop-connection! message-ch)
         (async/close!           event-ch)))))
-
-;; (initialize-bot token intents channel-id)
