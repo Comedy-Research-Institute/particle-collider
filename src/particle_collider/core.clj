@@ -1,10 +1,17 @@
 (ns particle-collider.core
-  (:require [particle-collider.bot :refer [initialize-bot]]))
+  (:require [particle-collider.bot :refer [initialize-bot]]
+            [particle-collider.image :refer [copyright-image]]))
 
 
 ;; load an image from a resource file
 ;; show the image, after applying an "invert" filter
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+
+(defonce token "OTY1MTIyMjU0MDk2NzExNzYw.GzWsW4.nI5S7gZGjiG9bMUw9HG1zCRgm-k10DeKjrTWeM")
+(def intents #{:guilds :guild-messages})
+(def channel-id "965124415216033832")
+
+(defn -main []
+  (initialize-bot token intents channel-id copyright-image))
+
+(-main)
+
