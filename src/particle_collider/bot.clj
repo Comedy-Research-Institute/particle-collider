@@ -15,7 +15,7 @@
 
 
 
-(defn is-image-message? [event-type event-data channel-id]
+(defn has-attachment? [event-type event-data channel-id]
   "Description:
        Boolean expression which returns true if the message containts an
         attachment, and that attachment is an image.
@@ -29,6 +29,15 @@
        (= (:channel-id event-data) channel-id)
        (not (:bot (:author event-data)))
        (> (count (:attachments event-data)) 0)))
+
+(defn get-image-attachments [attachments]
+  "Description:
+       Return a list of attachments for which :content-type starts with image
+   Arguments:
+       attachments - Persistent Vector collection containing Persistent Array Maps
+   Returns:
+       Lazy Sequence of Persistent Array Maps" 
+  (filter #(str/starts-with? (:content-type %) "image") attachments))
 
 
 
@@ -49,27 +58,43 @@
     (try
 
       (loop []
+
         (let [[event-type event-data] (async/<!! event-ch)]
-          (when (is-image-message? event-type event-data channel-id); <-- check attachment docs 
+
+          (println "🎉 NEW EVENT! 🎉")
+          (println "Event type:" event-type)
+
+
+          (when (has-attachment? event-type event-data channel-id); <-- check attachment docs 
             (let [message-content (:content event-data)]
 
-              ;; move outside is-image-message?
+           ;; move outside is-image-message?
               (if (= "!exit" (str/trim (str/lower-case message-content)))
                 (do
                   (msg/create-message! message-ch channel-id :content "Goodbye!")
                   (conn/disconnect-bot! connection-ch))
 
                 (do
-                  (let [image (:url second (:attachments event-data))
-                        processed-image (image-function image)]
-                     ;; create message with attachments \/ 
-                    (println (second (:attachments event-data)))
-                    (msg/create-message! message-ch channel-id :content message-content :attachments processed-image))))))
-          (when (= :channel-pins-update event-type)
-            (conn/disconnect-bot! connection-ch))
+                  (println "ATTACHMENTS:" (:attachments event-data))
+                  (println "IMAGE ATTACHMENTS:" (get-image-attachments (:attachments event-data)))
+                  (let [image-attachments (get-image-attachments (:attachments event-data))
+                        processed-images (map #(image-function (:url %) "url") image-attachments)]
+                    (println processed-images)
+                    (msg/create-message! message-ch channel-id 
+                                         :content "IMAGE COPYRIGHTED" 
+                                         :attachments processed-images)
+                    )))))
           (when-not (= :disconnect event-type)
             (recur))))
 
       (finally
         (msg/stop-connection! message-ch)
         (async/close!           event-ch)))))
+
+
+
+
+
+
+
+
