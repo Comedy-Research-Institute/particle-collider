@@ -11,20 +11,22 @@
   (:gen-class))
 
 
-
-(defn batch-caption []
-  "Description
-      takes a list of image files and adds captions to each
-   Arguments
-   Output")
+(defn load-image-from-file [filename]
+  (img/load-image-resource filename))
 
 
-(defn load-bufferedImage-from-file [filename]
-  )
-
-
-(defn load-bufferedImage-from-file [url]
+(defn load-image-from-url [url]
+  (println "Loading image from URL" url)
   (ImageIO/read (io/as-url url)))
+
+
+
+(defn write-image-to-disk [image filename]
+  (ImageIO/write image "png"
+                 (io/as-file
+                  (str "resources/" (first (s/split filename #"\.")) ".modified.png")))
+  ((str "resources/" (first (s/split filename #"\.")) ".modified.png")))
+
 
 
 ;; Captioning function with XY coords
@@ -64,17 +66,22 @@
 ;;     (def filename "meme.png")))
 
 
+(defn image-to-file-object [image name]
+  (io/as-file (write-image-to-disk image name)))
 
-(defn copyright-image [filename]
+(defn copyright-image [image image-origin]
 
   "Description: adds a copyright notice to the bottom of the image
    Arguments: filename - a string containing the name of a file in resources
    Returns: true on successful image write, false on failure"
 
 ;; TODO: add font smoothing
-
+  (println "Copyrighting image...")
   (let [notice "THIS MEME PROPERTY OF THE COMEDY RESEARCH INSTITUTE"
-        image (img/load-image-resource filename)
+        image (case image-origin
+                :url (load-image-from-url image)
+                :file (load-image-from-file image)
+                (println "Incorrect image source argument. Should be \"url\" or \"file\""))
         height (.getWidth image)
         width (.getHeight image)
         vertical-padding (* 0.01 height)
@@ -84,10 +91,9 @@
         font (Font. "TimesRoman" Font/BOLD font-size)
         metrics (.getFontMetrics graphics font)
         ;; multiply by ratio of width of string to allocated space
-        font-size (* font-size (/ (- width (* 2 horizontal-padding)) (.stringWidth metrics notice)))
-        font (Font. "TimesRoman" Font/BOLD font-size)]
+        font-size (* font-size (/ (- width (* 2 horizontal-padding)) (.stringWidth metrics notice)))]
     (print (.stringWidth metrics notice) "\n" font-size)
-    (add-text-to-img notice image (/ width 2) (- height vertical-padding) font-size)
-    (ImageIO/write image "png"
-                   (io/as-file
-                    (str "resources/" (first (s/split filename #"\.")) ".modified.png")))))
+    (add-text-to-img notice image (/ width 2) (- height vertical-padding) font-size)))
+
+
+
