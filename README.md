@@ -1,6 +1,6 @@
 # particle-collider
 
-FIXME: description
+A discord bot for creating memes and watermarking images, written in Clojure.
 
 ## Installation
 
